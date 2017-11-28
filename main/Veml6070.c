@@ -26,7 +26,9 @@
 #include "rom/ets_sys.h"
 #include "driver/gpio.h"
 
-#define I2C_ADDR 0x38 //0x38 and 0x39
+#define I2C_VEML6070_ADDR 0x70 //0x38 and 0x39
+#define I2C_VEML6070_ADDR1 0x71 //0x38 and 0x39
+#define I2C_VEML6070_ADDR2 0x73 //0x38 and 0x39
 
 //Integration Time
 #define IT_1_2 0x0 //1/2T
@@ -39,22 +41,13 @@
 #define RW_TEST_LENGTH                     129              /*!<Data length for r/w test, any value from 0-DATA_LENGTH*/
 #define DELAY_TIME_BETWEEN_ITEMS_MS        1234             /*!< delay time between different test items */
 
-#define I2C_EXAMPLE_SLAVE_SCL_IO           26               /*!<gpio number for i2c slave clock  */
-#define I2C_EXAMPLE_SLAVE_SDA_IO           25               /*!<gpio number for i2c slave data */
-#define I2C_EXAMPLE_SLAVE_NUM              I2C_NUM_0        /*!<I2C port number for slave dev */
-#define I2C_EXAMPLE_SLAVE_TX_BUF_LEN       (2*DATA_LENGTH)  /*!<I2C slave tx buffer size */
-#define I2C_EXAMPLE_SLAVE_RX_BUF_LEN       (2*DATA_LENGTH)  /*!<I2C slave rx buffer size */
-
 #define I2C_EXAMPLE_MASTER_SCL_IO          19               /*!< gpio number for I2C master clock */
 #define I2C_EXAMPLE_MASTER_SDA_IO          18               /*!< gpio number for I2C master data  */
-#define I2C_EXAMPLE_MASTER_NUM             I2C_NUM_1        /*!< I2C port number for master dev */
+#define I2C_EXAMPLE_MASTER_NUM             I2C_NUM_0        /*!< I2C port number for master dev */
 #define I2C_EXAMPLE_MASTER_TX_BUF_DISABLE  0                /*!< I2C master do not need buffer */
 #define I2C_EXAMPLE_MASTER_RX_BUF_DISABLE  0                /*!< I2C master do not need buffer */
 #define I2C_EXAMPLE_MASTER_FREQ_HZ         100000           /*!< I2C master clock frequency */
 
-#define BH1750_SENSOR_ADDR                 0x23             /*!< slave address for BH1750 sensor */
-#define BH1750_CMD_START                   0x23             /*!< Command to set measure mode */
-#define ESP_SLAVE_ADDR                     0x28             /*!< ESP32 slave address, you can set any 7bit value */
 #define WRITE_BIT                          I2C_MASTER_WRITE /*!< I2C master write */
 #define READ_BIT                           I2C_MASTER_READ  /*!< I2C master read */
 #define ACK_CHECK_EN                       0x1              /*!< I2C master will check ack from slave*/
@@ -83,61 +76,74 @@ static void i2c_example_master_init()
                        I2C_EXAMPLE_MASTER_TX_BUF_DISABLE, 0);
 }
 
-/**
- * @brief test code to read esp-i2c-slave
- *        We need to fill the buffer of esp slave device, then master can read them out.
- *
- * _______________________________________________________________________________________
- * | start | slave_addr + rd_bit +ack | read n-1 bytes + ack | read 1 byte + nack | stop |
- * --------|--------------------------|----------------------|--------------------|------|
- *
- */
-static esp_err_t i2c_example_master_read_slave(i2c_port_t i2c_num, uint8_t* data_rd, size_t size)
+static esp_err_t i2c_veml6070_read(i2c_port_t i2c_num, uint8_t* data_h, uint8_t* data_l)
 {
-    if (size == 0) {
-        return ESP_OK;
-    }
+    int ret;
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, ( ESP_SLAVE_ADDR << 1 ) | READ_BIT, ACK_CHECK_EN);
-    if (size > 1) {
-        i2c_master_read(cmd, data_rd, size - 1, ACK_VAL);
-    }
-    i2c_master_read_byte(cmd, data_rd + size - 1, NACK_VAL);
+    i2c_master_write_byte(cmd, I2C_VEML6070_ADDR << 1 | WRITE_BIT, ACK_CHECK_EN);
+    i2c_master_write_byte(cmd, (IT_1<<2) | 0x02, ACK_CHECK_EN);
     i2c_master_stop(cmd);
-    esp_err_t ret = i2c_master_cmd_begin(i2c_num, cmd, 1000 / portTICK_RATE_MS);
+    ret = i2c_master_cmd_begin(i2c_num, cmd, 1000 / portTICK_RATE_MS);
+    i2c_cmd_link_delete(cmd);
+    if (ret != ESP_OK) {
+        return ret;
+    }
+    
+    vTaskDelay(500 / portTICK_RATE_MS);
+    
+    cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd,(I2C_VEML6070_ADDR1) << 1 | READ_BIT, ACK_CHECK_EN);
+    vTaskDelay(1 / portTICK_PERIOD_MS);
+    i2c_master_read_byte(cmd, data_h, ACK_VAL);
+    i2c_master_stop(cmd);
+    ret = i2c_master_cmd_begin(i2c_num, cmd, 1000 / portTICK_RATE_MS);
+    i2c_cmd_link_delete(cmd);
+    
+    vTaskDelay(10 / portTICK_RATE_MS);
+    
+    cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (I2C_VEML6070_ADDR2) << 1 | READ_BIT, ACK_CHECK_EN);
+    vTaskDelay(1 / portTICK_PERIOD_MS);
+    i2c_master_read_byte(cmd, data_l, NACK_VAL);
+    i2c_master_stop(cmd);
+    ret = i2c_master_cmd_begin(i2c_num, cmd, 1000 / portTICK_RATE_MS);
     i2c_cmd_link_delete(cmd);
     return ret;
 }
 
 
-
 void Veml6070(void){
-  Wire.begin();
- print_mux = xSemaphoreCreateMutex();
-    i2c_example_slave_init();
+//  Wire.begin();
+    //i2c_example_slave_init();
     i2c_example_master_init();
-
-  Wire.beginTransmission(I2C_ADDR);
-  Wire.write((IT_1<<2) | 0x02);
-  Wire.endTransmission();
-  vTaskDelay(500 / portTICK_PERIOD_MS);
-  byte msb=0, lsb=0;
+    //i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    //i2c_master_start(cmd);
+    //i2c_master_write_byte(cmd, ( ESP_SLAVE_ADDR << 1 ) | READ_BIT, ACK_CHECK_EN);
+    //if (size > 1) {
+  //Wire.beginTransmission(I2C_ADDR);
+  //Wire.write((IT_1<<2) | 0x02);
+  //Wire.endTransmission();
+  //vTaskDelay(500 / portTICK_PERIOD_MS);
+  uint8_t msb=0, lsb=0;
   uint16_t uv;
+  esp_err_t ret;
+  //Wire.requestFrom(I2C_ADDR+1, 1); //MSB
+  //vTaskDelay(1 / portTICK_PERIOD_MS);
+  //if(Wire.available())
+  //  msb = Wire.read();
 
-  Wire.requestFrom(I2C_ADDR+1, 1); //MSB
-  vTaskDelay(1 / portTICK_PERIOD_MS);
-  if(Wire.available())
-    msb = Wire.read();
-
-  Wire.requestFrom(I2C_ADDR+0, 1); //LSB
-  vTaskDelay(1 / portTICK_PERIOD_MS);
-  if(Wire.available())
-    lsb = Wire.read();
-
+  //Wire.requestFrom(I2C_ADDR+0, 1); //LSB
+  //vTaskDelay(1 / portTICK_PERIOD_MS);
+  //if(Wire.available())
+  //  lsb = Wire.read();
+  while(1){
+  ret=i2c_veml6070_read(I2C_NUM_0,msb,lsb);
   uv = (msb<<8) | lsb;
-  printf("UV %d DEC %d\n",uv, DEC); //output in steps (16bit)
+  printf("UV %d \n",uv); //output in steps (16bit)
 
   vTaskDelay(1000 / portTICK_PERIOD_MS);
-
+  }
 }

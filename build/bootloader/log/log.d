@@ -1,23 +1,32 @@
-log.o: /home/sferrar0/Lua-Rtos-esp32/esp-idf/components/log/./log.c \
- /home/sferrar0/Lua-Rtos-esp32/esp-idf/components/esp32/include/esp_attr.h \
- /home/sferrar0/Lua-Rtos-esp32/esp-idf/components/esp32/include/xtensa/hal.h \
- /home/sferrar0/Lua-Rtos-esp32/esp-idf/components/soc/esp32/include/soc/soc.h \
- /home/sferrar0/Lua-Rtos-esp32/esp-idf/components/esp32/include/esp_assert.h \
- /home/sferrar0/Lua-Rtos-esp32/esp-idf/components/log/include/esp_log.h \
- /home/sferrar0/Lua-Rtos-esp32/esp_veml6070/build/bootloader/../include/sdkconfig.h \
- /home/sferrar0/Lua-Rtos-esp32/esp-idf/components/esp32/include/rom/ets_sys.h
+log.o: /home/sferraro/esp/esp-idf/components/log/./log.c \
+ /home/sferraro/esp/esp-idf/components/esp32/include/esp_attr.h \
+ /home/sferraro/esp/esp-idf/components/esp32/include/xtensa/hal.h \
+ /home/sferraro/esp/esp-idf/components/soc/esp32/include/soc/soc.h \
+ /home/sferraro/esp/esp-idf/components/esp32/include/esp_assert.h \
+ /home/sferraro/esp/esp-idf/components/log/include/esp_log.h \
+ /home/sferraro/esp/Proyectos/esp_veml6070/build/bootloader/../include/sdkconfig.h \
+ /home/sferraro/esp/esp-idf/components/esp32/include/rom/ets_sys.h \
+ /home/sferraro/esp/esp-idf/components/log/include/esp_log_internal.h \
+ /home/sferraro/esp/esp-idf/components/esp32/include/rom/queue.h \
+ /home/sferraro/esp/esp-idf/components/soc/include/soc/soc_memory_layout.h
 
-/home/sferrar0/Lua-Rtos-esp32/esp-idf/components/esp32/include/esp_attr.h:
+/home/sferraro/esp/esp-idf/components/esp32/include/esp_attr.h:
 
-/home/sferrar0/Lua-Rtos-esp32/esp-idf/components/esp32/include/xtensa/hal.h:
+/home/sferraro/esp/esp-idf/components/esp32/include/xtensa/hal.h:
 
-/home/sferrar0/Lua-Rtos-esp32/esp-idf/components/soc/esp32/include/soc/soc.h:
+/home/sferraro/esp/esp-idf/components/soc/esp32/include/soc/soc.h:
 
-/home/sferrar0/Lua-Rtos-esp32/esp-idf/components/esp32/include/esp_assert.h:
+/home/sferraro/esp/esp-idf/components/esp32/include/esp_assert.h:
 
-/home/sferrar0/Lua-Rtos-esp32/esp-idf/components/log/include/esp_log.h:
+/home/sferraro/esp/esp-idf/components/log/include/esp_log.h:
 
-/home/sferrar0/Lua-Rtos-esp32/esp_veml6070/build/bootloader/../include/sdkconfig.h:
+/home/sferraro/esp/Proyectos/esp_veml6070/build/bootloader/../include/sdkconfig.h:
 
-/home/sferrar0/Lua-Rtos-esp32/esp-idf/components/esp32/include/rom/ets_sys.h:
-/home/sferrar0/Lua-Rtos-esp32/esp-idf/components/log/./log.c:
+/home/sferraro/esp/esp-idf/components/esp32/include/rom/ets_sys.h:
+
+/home/sferraro/esp/esp-idf/components/log/include/esp_log_internal.h:
+
+/home/sferraro/esp/esp-idf/components/esp32/include/rom/queue.h:
+
+/home/sferraro/esp/esp-idf/components/soc/include/soc/soc_memory_layout.h:
+/home/sferraro/esp/esp-idf/components/log/./log.c:

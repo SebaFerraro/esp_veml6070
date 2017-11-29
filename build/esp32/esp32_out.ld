@@ -20,6 +20,7 @@
  * Espressif IoT Development Framework Configuration
  *
  */
+/* If BT is not built at all */
 MEMORY
 {
   /* All these values assume the flash cache is on, and have the blocks this uses subtracted from the length
@@ -40,8 +41,8 @@ MEMORY
      Enabling Bluetooth & Trace Memory features in menuconfig will decrease
      the amount of RAM available.
   */
-  dram0_0_seg (RW) : org = 0x3FFB0000 + 0x0,
-                                     len = 0x50000 - 0x0 - 0x0
+  dram0_0_seg (RW) : org = 0x3FFB0000 + 0x10000,
+                                     len = 0x50000 - 0x0 - 0x10000
   /* Flash mapped constant data */
   drom0_0_seg (R) : org = 0x3F400018, len = 0x400000-0x18
   /* (See iram0_2_seg for meaning of 0x18 offset in the above.) */
